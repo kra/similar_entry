@@ -8,7 +8,7 @@ class TestString(unittest.TestCase):
         s = entry.String()
         for (str_in, str_out) in [
             ('foo', 'foo'),
-            ('9foo9bar9', 'foo9bar'),
+            ('9foo9bar!!', 'foo9bar'),
             ('@', ''),
             ('', ''),
             ]:

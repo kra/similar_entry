@@ -1,4 +1,5 @@
 stored:
+- tweets replied to
 - reply tweets used
 -- user, in response to, body, source tweet, source user, timestamp
 - target users
@@ -9,29 +10,30 @@ config:
 - minimum words in source tweet
 - minimum words in reply tweet
 - stopwords
-- English words
+- English words?
 
 - pick target user
 -- user priorities
+--- haven't bothered in X
+--- user has replied to, RT'd me: +1
 - get tweet
 -- pick random recent tweet
--- remove non-ascii
--- lowercase
--- split into words
--- remove stopwords
--- validate
---- minimum English words
+-- normalize
+--- remove non-ascii
+--- lowercase
+--- split into words
+--- remove stopwords, URLs
+-- validate?
+--- minimum words?
+--- minimum English words?
 -- repeat until tweet found
 -- if not found, pick new user
--- search for all unordered subsets of words
---- no URLs
---- different user
---- enough English words
+-- search for all unordered subsets of words from other users
 ---- if not found, pick new random recent tweet or new user
 -- repeat until tweet with enough words is found
 -- if not found, pick new user
 - get similar reply tweet
--- find closest matching tweet with search
+-- find closest matching non-RT tweet with search
 --- search for all words, removing one word each search
 - sanitize reply tweet
 -- remove #, @ words
