@@ -1,18 +1,18 @@
 import unittest
-import entry
+import words.entry
 
 
 class TestString(unittest.TestCase):
 
     def test_normalize(self):
-        s = entry.String()
         for (str_in, str_out) in [
             ('foo', 'foo'),
             ('9foo9bar!!', 'foo9bar'),
             ('@', ''),
             ('', ''),
             ]:
-            self.assertEqual(s.normalize(str_in), str_out)
+            self.assertEqual(
+                words.entry.String.normalize_word(str_in), str_out)
 
 
 if __name__ == '__main__':
