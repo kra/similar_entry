@@ -34,24 +34,3 @@ class String(object):
         words = [cls.normalize_word(word) for word in text.split()]
         words = [word for word in words if cls.wanted_word(word)]
         return words
-
-
-class Entry(object):
-
-    def __init__(self, user, text, min_words):
-        self.user = user
-        self.text = text
-        self.min_words = min_words
-
-    def find_similar(self):
-        words = String.normalized_words(self.text)
-        # search for each subset of words until we return a result or fail
-
-    def search(self, words):
-        """
-        If the the normalized words of a result from a  search for words
-        doesn't match words, return the result.
-        """
-        for result in search.Search(words):
-            if set(String.normalized_words(result['text'])) != set(words):
-                return result
