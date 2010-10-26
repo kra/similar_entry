@@ -18,18 +18,19 @@ class TestEntry(unittest.TestCase):
             [(1,), (2,), (3,)])
 
     def test_combinations(self):
+        user = entry.User('username')
         self.assertEqual(
-            [x for x in entry.Entry('foo bar baz', 4, 'user').combinations()],
+            [x for x in entry.Post('foo bar baz', user).combinations(4, 10)],
             [])
         self.assertEqual(
-            [x for x in entry.Entry('foo bar baz', 3, 'user').combinations()],
+            [x for x in entry.Post('foo bar baz', user).combinations(3, 10)],
             [('foo', 'bar', 'baz')])
         self.assertEqual(
-            [x for x in entry.Entry('foo bar baz', 2, 'user').combinations()],
+            [x for x in entry.Post('foo bar baz', user).combinations(2, 10)],
             [('foo', 'bar', 'baz'),
              ('foo', 'bar'), ('foo', 'baz'), ('bar', 'baz')])
         self.assertEqual(
-            [x for x in entry.Entry('foo bar baz', 1, 'user').combinations()],
+            [x for x in entry.Post('foo bar baz', user).combinations(1, 10)],
             [('foo', 'bar', 'baz'),
              ('foo', 'bar'), ('foo', 'baz'), ('bar', 'baz'),
              ('foo',), ('bar',), ('baz',)])
