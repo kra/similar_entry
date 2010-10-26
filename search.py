@@ -1,17 +1,30 @@
 import urllib2
 import simplejson
 import entry
+import time
+
+def log(msg): print msg
 
 
 class UrlGetter(object):
+    sleep_secs = 'xxx'
     @classmethod
     def get(cls, url):
-        try:
-            return urllib2.urlopen(url).read()
-        except urllib2.URLError, exc:
-            # want to back off and retry if this exc.code indicates throttling
-            raise NotImplementedError
-        
+        cls.sleep_secs = 0.125
+        while True:
+            # Q&d backing off in response to throttling.
+            # This works if there's one single-threaded UrlGetter.
+            time.sleep(cls.sleep_secs)
+            try:
+                out = urllib2.urlopen(url).read()
+                # this is probably susceptible to rounding errors
+                cls.sleep_secs /= 2
+                return out
+            except urllib2.URLError, exc:
+                if exc.code == 420:
+                    cls.sleep_secs *= 2
+                    log('UrlGetter sleeping %s' % cls.sleep_secs)
+                
 
 class Search(object):
 
@@ -54,5 +67,4 @@ class Search(object):
         
 if __name__ == '__main__':
     # test
-    #print Search().search(['now','is','the','time','for','all','good','men','to','aid','boo'])
     print Search().search(['now','is','the','time'])
