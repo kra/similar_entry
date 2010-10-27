@@ -1,3 +1,4 @@
+# XXX include without puncutation
 stopwords = [
     "'tis",
     "'twas",

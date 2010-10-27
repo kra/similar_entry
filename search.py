@@ -2,28 +2,27 @@ import urllib2
 import simplejson
 import entry
 import time
-
-def log(msg): print msg
+import util
 
 
 class UrlGetter(object):
-    sleep_secs = 'xxx'
+    sleep_secs = 0.25
     @classmethod
     def get(cls, url):
-        cls.sleep_secs = 0.125
         while True:
             # Q&d backing off in response to throttling.
             # This works if there's one single-threaded UrlGetter.
             time.sleep(cls.sleep_secs)
             try:
                 out = urllib2.urlopen(url).read()
-                # this is probably susceptible to rounding errors
-                cls.sleep_secs /= 2
+                cls.sleep_secs = max(cls.sleep_secs / 2, 0.25)
                 return out
             except urllib2.URLError, exc:
+                # XXX this might not have a code for some reason
+                # XXX we still want to sleep for other codes
                 if exc.code == 420:
                     cls.sleep_secs *= 2
-                    log('UrlGetter sleeping %s' % cls.sleep_secs)
+                    util.log('UrlGetter sleeping %s' % cls.sleep_secs)
                 
 
 class Search(object):
@@ -54,6 +53,7 @@ class Search(object):
         """
         Return the results of a search for words.
         """
+        util.log('searching for %s' % ' '.join(words))
         return self._search_results(
             self.url_getter.get(self._search_url(words)))
 

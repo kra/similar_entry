@@ -1,5 +1,6 @@
 from words import entry
 import search
+import util
 
 # This is in python2.6 itertools, copied from the lib docs.
 def combinations(iterable, r):
@@ -72,11 +73,10 @@ class Post(object):
                     return True
         return False
         
-    def find_similar(self, min_words):
+    def find_similar(self, min_words, max_words):
         """
         Yield eligible seach results which match my text.
         """
-        max_words = 10                  # max words we can search for
         for words in self.combinations(min_words, max_words):
             for post in search.Search().search(words):
                 if self._qualified_post(post, min_words):
@@ -85,12 +85,12 @@ class Post(object):
 
 if __name__ == '__main__':
     # test
-    username = 'al3x'
+    username = 'blaine'
     user = User(username)
     #print [
     #    post.text for post in Post(
     #        'friends please know how much', user).find_similar(3)]
     for post in user.recent_posts():
-        print 'post', post.text
-        for similar_post in post.find_similar(3):
-            print 'similar post', similar_post.text
+        util.log('post %s' % post.text)
+        for similar_post in post.find_similar(4, 6):
+            util.log('similar post %s' % similar_post.text)
