@@ -73,7 +73,7 @@ class Post(object):
                     return True
         return False
         
-    def find_similar(self, min_words, max_words):
+    def find_similar_words(self, min_words, max_words):
         """
         Yield eligible seach results which match my text.
         """
@@ -92,5 +92,5 @@ if __name__ == '__main__':
     #        'friends please know how much', user).find_similar(3)]
     for post in user.recent_posts():
         util.log('post %s' % post.text)
-        for similar_post in post.find_similar(4, 6):
+        for similar_post in post.find_similar_words(4, 6):
             util.log('similar post %s' % similar_post.text)
