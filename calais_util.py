@@ -25,9 +25,20 @@ import calais
 #             else:
 #                 entities_out.append(e)                
 #     return entities_out
-        
 
 def get_entities(text, api_key):
-    return [
-        entity['name']
-        for entity in calais.Calais(api_key, submitter="foo").analyze(text)]
+    response = calais.Calais(api_key, submitter="foo").analyze(
+        text)
+    try:
+        return [entity['name'] for entity in response.entities]
+    except AttributeError:
+        # if no entities found, this attribute is not set
+        return []
+
+
+if __name__ == '__main__':
+    import config
+    print get_entities(
+        'Hello, Barack Obama is the President of the United States, '
+        'a.k.a. the United States of America.',
+        config.calais_key)

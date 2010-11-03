@@ -1,12 +1,13 @@
 from words import entry
 import search
 import util
+import calais_util
 
 # This is in python2.6 itertools, copied from the lib docs.
+# If elements of iterable are unique, these are subsets.
 def combinations(iterable, r):
     """
     Yield all subsequences of iterable of length r.
-    If elements of iterable are unique, these are subsets.
     """
     pool = tuple(iterable)
     n = len(pool)
@@ -25,6 +26,16 @@ def combinations(iterable, r):
             indices[j] = indices[j-1] + 1
         yield tuple(pool[i] for i in indices)
 
+def all_combinations(iterable, min_elts, max_elts):
+    """
+    Yield all subsequences of iterable of length min_elts to max_elts
+    inclusive, in decreasing order of length.
+    """
+    while max_elts >= min_elts:
+        for sub in combinations(iterable, max_elts):
+            yield sub
+        max_elts -= 1
+    
 
 class User(object):
 
@@ -45,52 +56,73 @@ class Post(object):
         self.normalized_text = entry.String.normalized_words(self.text)
         self.user = user
 
-    def combinations(self, min_words, max_words):
+    def word_combinations(self, min_words, max_words):
         """
         Yield all subsequences of normalized words from my text
         of length between min_words and max_words inclusive,
         in decreasing order of length.
         """
-        w_len = min(len(self.normalized_text), max_words)
-        while w_len >= min_words:
-            for sub in combinations(self.normalized_text, w_len):
-                if len(sub) <= max_words:
-                    yield sub
-            w_len -= 1
+        return all_combinations(
+            self.normalized_text,
+            min_words, min(len(self.normalized_text), max_words))
+
+    def _qualified_post_text(self, post, min_words):
+        """
+        Return True if text of post qualfies as a similar post to myself.
+        """
+        if post.text.strip().lower().find('rt ') == 0:
+            return False
+        if len(post.normalized_text) < min_words:
+            return False
+        return True
 
     def _qualified_post(self, post, min_words):
         """
         Return True if post qualfies as a similar post to myself.
         """
-        if post.text.lower().find('rt ') == 0:
-            return False
         if post.user.username != self.user.username:
-            normalized_text = entry.String.normalized_words(
-                post.text)
-            if len(normalized_text) >= min_words:
+            if self._qualified_post_text(post, min_words):
                 # we want a unique word in result or text
-                if (set(normalized_text) != set(self.normalized_text)):
+                # XXX remove RT, @names first
+                if (set(post.normalized_text) != set(self.normalized_text)):
                     return True
         return False
         
-    def find_similar_words(self, min_words, max_words):
+    def find_similar_word_posts(self, min_words, max_words):
         """
         Yield eligible seach results which match my text.
         """
-        for words in self.combinations(min_words, max_words):
+        for words in self.word_combinations(min_words, max_words):
             for post in search.Search().search(words):
                 if self._qualified_post(post, min_words):
                     yield post
-
+        
+    def find_similar_entity_posts(
+        self, min_entities, min_words, max_words, calais_key):
+        """
+        Yield eligible seach results with words which match
+        entries from my text of max_words or less.
+        """
+        entities = calais_util.get_entities(self.text, calais_key)
+        util.log('entities: %s' % entities)
+        for combo in all_combinations(
+            entities, min_entities, len(entities)):
+            words = ' '.join(combo).split()
+            if len(' '.join(combo).split()) <= max_words:
+                for post in search.Search().search(words):
+                    if self._qualified_post(post, min_words):
+                        yield post
+        
 
 if __name__ == '__main__':
     # test
-    username = 'blaine'
+    import config
+    username = 'al3x'#'blaine'
     user = User(username)
-    #print [
-    #    post.text for post in Post(
-    #        'friends please know how much', user).find_similar(3)]
     for post in user.recent_posts():
-        util.log('post %s' % post.text)
-        for similar_post in post.find_similar_words(4, 6):
-            util.log('similar post %s' % similar_post.text)
+        util.log('post: %s' % post.text)
+        #for similar_post in post.find_similar_word_posts(4, 6):
+        #    util.log('similar: %s' % similar_post.text)
+        for similar_post in post.find_similar_entity_posts(
+            2, 3, 10, config.calais_key):
+            util.log('similar: %s' % similar_post.text)

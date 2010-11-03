@@ -22,7 +22,7 @@ class UrlGetter(object):
                 # XXX we still want to sleep for other codes
                 if exc.code == 420:
                     cls.sleep_secs *= 2
-                    util.log('UrlGetter sleeping %s' % cls.sleep_secs)
+                    util.log('sleeping: %s' % cls.sleep_secs)
                 
 
 class Search(object):
@@ -53,7 +53,7 @@ class Search(object):
         """
         Return the results of a search for words.
         """
-        util.log('searching for %s' % ' '.join(words))
+        util.log('searching: %s' % ' '.join(words))
         return self._search_results(
             self.url_getter.get(self._search_url(words)))
 
