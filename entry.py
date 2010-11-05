@@ -76,29 +76,30 @@ class Post(object):
             return False
         return True
 
-    def _qualified_post(self, post, min_words):
+    def _qualified_post(self, post, min_words, min_diff):
         """
         Return True if post qualfies as a similar post to myself.
         """
+        # XXX Disqualify if this post is an RT (^@, RT, .@)
         if post.user.username != self.user.username:
             if self._qualified_post_text(post, min_words):
-                # we want a unique word in result or text
-                # XXX remove RT, @names first
-                if (set(post.normalized_text) != set(self.normalized_text)):
+                # we want unique words in result or text
+                if (len(set(post.normalized_text).symmetric_difference(
+                    set(self.normalized_text))) >= min_diff):
                     return True
         return False
         
-    def find_similar_word_posts(self, min_words, max_words):
+    def find_similar_word_posts(self, min_words, max_words, min_diff):
         """
         Yield eligible seach results which match my text.
         """
         for words in self.word_combinations(min_words, max_words):
             for post in search.Search().search(words):
-                if self._qualified_post(post, min_words):
+                if self._qualified_post(post, min_words, min_diff):
                     yield post
         
     def find_similar_entity_posts(
-        self, min_entities, min_words, max_words, calais_key):
+        self, min_entities, min_words, max_words, min_diff, calais_key):
         """
         Yield eligible seach results with words which match
         entries from my text of max_words or less.
@@ -110,7 +111,7 @@ class Post(object):
             words = ' '.join(combo).split()
             if len(' '.join(combo).split()) <= max_words:
                 for post in search.Search().search(words):
-                    if self._qualified_post(post, min_words):
+                    if self._qualified_post(post, min_words, min_diff):
                         yield post
         
 
@@ -124,5 +125,5 @@ if __name__ == '__main__':
         #for similar_post in post.find_similar_word_posts(4, 6):
         #    util.log('similar: %s' % similar_post.text)
         for similar_post in post.find_similar_entity_posts(
-            2, 3, 10, config.calais_key):
+            2, 3, 10, 2, config.calais_key):
             util.log('similar: %s' % similar_post.text)

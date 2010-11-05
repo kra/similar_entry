@@ -10,12 +10,18 @@ class String(object):
         Return lowercased word without leading or trailing non-ascii,
         if relevant, or None.
         """
-        # FIXME: strip entities, anything else?
         if not word:
             return None
         if word[0] == '@':
             return None
+        if word[0] == '.':              # this is also used for RT
+            return None
         word = word.lower()
+        if word == 'rt':
+            return None
+        if word[0] == '&':
+            # XML entity or starts with one, or whatevs
+            return None
         while word and word[0] not in string.ascii_lowercase:
             word = word[1:]
         while word and word[-1] not in string.ascii_lowercase:

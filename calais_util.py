@@ -1,36 +1,38 @@
 # requires http://code.google.com/p/python-calais/
 import calais
+import operator
 
-# # This would be helpful to avoid double-entities from overlapping text, like
-# # "United States" and "United States of America".  Without it, we'll be
-# # doing extra searches.
-# def relevant_entities(entities):
-#     """
-#     Return non-overlapping entities.  Choose shorter entities when overlapping.
-#     """
-#     entities_out = []
-#     for e in entities:
-#         for e_out in entities_out:
-#             if e['offset'] >= e_out['offset']:
-#                 if e['offset'] < e_out['offset'] + e_out['length']:
-#                     if e['length'] < e_out['length']:
-#                         entities_out.remove(e_out)
-#                         entities_out.append(e)
-#                 else:
-#                     entities_out.append(e)
-#             elif e_out['offset'] < e['offset'] + e['length']:
-#                     if e['length'] < e_out['length']:
-#                         entities_out.remove(e_out)
-#                         entities_out.append(e)
-#             else:
-#                 entities_out.append(e)                
-#     return entities_out
+def relevant_entities(entities):
+    """ Return non-overlapping entities. """
+    if not entities:
+        return entities
+    entities_out = []
+    entities = sorted(entities, key=lambda e: e['instances'][0]['offset'])
+    entities_out.append(entities.pop(0))    
+    while entities:
+        entity = entities.pop(0)
+        instance = entity['instances'][0]
+        last_instance = entities_out[-1]['instances'][0]
+        if (instance['offset'] >=
+            last_instance['offset'] + last_instance['length']):
+            entities_out.append(entity)
+    return entities_out
+
+def normalize_entity(entity):
+    """
+    Return entity, if relevant, or None.
+    """
+    if entity['name'].lower() == 'rt':
+        return None
+    return entity
 
 def get_entities(text, api_key):
     response = calais.Calais(api_key, submitter="foo").analyze(
         text)
     try:
-        return [entity['name'] for entity in response.entities]
+        return [
+            entity['name'] for entity in relevant_entities(response.entities)
+            if normalize_entity(entity)]
     except AttributeError:
         # if no entities found, this attribute is not set
         return []
