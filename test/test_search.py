@@ -26,7 +26,7 @@ class TestSearch(unittest.TestCase):
         search_out = searcher.search(['scraper', 'bike', 'london'])
         self.assertEqual(len(search_out), 2)
         self.assertEqual(
-            [post.user.username for post in search_out],
+            [post.from_user.username for post in search_out],
             ['bikebot', 'fastchicken'])
 
 

@@ -3,6 +3,8 @@ import search
 import util
 import calais_util
 
+import datetime
+
 # This is in python2.6 itertools, copied from the lib docs.
 # If elements of iterable are unique, these are subsets.
 def combinations(iterable, r):
@@ -51,10 +53,14 @@ class User(object):
 
 class Post(object):
 
-    def __init__(self, text, user):
+    def __init__(self, text, from_user, post_id, created_at):
         self.text = text
         self.normalized_text = entry.String.normalized_words(self.text)
-        self.user = user
+        self.from_user = from_user
+        self.post_id = post_id
+        self.created_at = datetime.datetime.strptime(
+            created_at, '%a, %d %b %Y %H:%M:%S +0000')
+        self.responded_at = None
 
     def word_combinations(self, min_words, max_words):
         """
@@ -81,7 +87,7 @@ class Post(object):
         Return True if post qualfies as a similar post to myself.
         """
         # XXX Disqualify if this post is an RT (^@, RT, .@)
-        if post.user.username != self.user.username:
+        if post.from_user.username != self.from_user.username:
             if self._qualified_post_text(post, min_words):
                 # we want unique words in result or text
                 if (len(set(post.normalized_text).symmetric_difference(
@@ -125,5 +131,5 @@ if __name__ == '__main__':
         #for similar_post in post.find_similar_word_posts(4, 6):
         #    util.log('similar: %s' % similar_post.text)
         for similar_post in post.find_similar_entity_posts(
-            2, 3, 10, 2, config.calais_key):
+            3, 3, 10, 2, config.calais_key):
             util.log('similar: %s' % similar_post.text)

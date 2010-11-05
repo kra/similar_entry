@@ -33,7 +33,8 @@ class Search(object):
         """
         Return a URL for a search for words with JSON output.
         """
-        return 'http://search.twitter.com/search.json?q=%s' % ('+'.join(words))
+        return 'http://search.twitter.com/search.json?q=%s' % (
+            '+'.join([urllib2.quote(word) for word in words]))
 
     def _user_search_url(self, username):
         """
@@ -46,7 +47,9 @@ class Search(object):
         Return a sequence of posts.
         """
         return [
-            entry.Post(result['text'], entry.User(result['from_user']))
+            entry.Post(
+                result['text'], entry.User(result['from_user']),
+                result['id'], result['created_at'])
             for result in simplejson.loads(result_string)['results']]
 
     def search(self, words):

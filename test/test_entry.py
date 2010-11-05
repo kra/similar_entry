@@ -1,4 +1,5 @@
 import unittest
+
 import entry
 
 
@@ -18,7 +19,9 @@ class TestEntry(unittest.TestCase):
             [(1,), (2,), (3,)])
 
     def test_combinations(self):
-        post = entry.Post('foo bar baz', entry.User('username'))
+        post = entry.Post(
+            'foo bar baz', entry.User('username'), 666,
+            "Sun, 31 Oct 2010 03:04:21 +0000")
         self.assertEqual(
             [x for x in post.word_combinations(4, 10)],
             [])
