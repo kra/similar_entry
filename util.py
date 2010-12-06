@@ -1,5 +1,5 @@
 import datetime
 
 def log(msg):
-    import datetime
-    print '%s %s' % (datetime.datetime.now().isoformat(), msg)
+    print '%s %s' % (datetime.datetime.now().isoformat(),
+                     msg.encode('ascii', 'replace'))
