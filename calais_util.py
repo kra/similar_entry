@@ -1,6 +1,29 @@
 # requires http://code.google.com/p/python-calais/
 import calais
 import operator
+import time
+
+import util
+
+
+class CalaisGetter(object):
+    sleep_secs = 0.0625
+    @classmethod
+    def get(cls, text, api_key):
+        while True:
+            # Q&d backing off in response to throttling.
+            # This works if there's one single-threaded CalaisGetter.
+            time.sleep(cls.sleep_secs)
+            try:
+                out = calais.Calais(api_key, submitter="foo").analyze(
+                    text.encode('ascii', 'replace'))
+                cls.sleep_secs = max(cls.sleep_secs / 2, 0.0625)
+                return out
+            except ValueError, exc:
+                # Assume this is due to busy server, should parse exc message
+                cls.sleep_secs *= 2
+                util.log('calais sleeping: %s (%s)' % (cls.sleep_secs, text))
+
 
 def relevant_entities(entities):
     """ Return non-overlapping entities. """
@@ -27,8 +50,7 @@ def normalize_entity(entity):
     return entity
 
 def get_entities(text, api_key):
-    response = calais.Calais(api_key, submitter="foo").analyze(
-        text)
+    response = CalaisGetter.get(text, api_key)
     try:
         return [
             entity['name'] for entity in relevant_entities(response.entities)
