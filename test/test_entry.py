@@ -38,6 +38,36 @@ class TestEntry(unittest.TestCase):
              ('foo', 'bar'), ('foo', 'baz'), ('bar', 'baz'),
              ('foo',), ('bar',), ('baz',)])
 
+    def test_usernames(self):
+        self.assertEqual(
+            entry.Post('', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000")._usernames(),
+            set(['username']))
+        self.assertEqual(
+            entry.Post('foo bar baz', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000")._usernames(),
+            set(['username']))
+        self.assertEqual(
+            entry.Post('@foo @bar baz @qux', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000")._usernames(),
+            set(['username', 'foo', 'bar', 'qux']))
+
+    def test_is_rt(self):
+        self.assertEqual(
+            entry.Post('', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000").is_rt(), False)
+        self.assertEqual(
+            entry.Post('RT @foo bar', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000").is_rt(), True)
+        self.assertEqual(
+            entry.Post('foo RT @foo bar', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000").is_rt(), True)
+        self.assertEqual(
+            entry.Post(' .@foo bar', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000").is_rt(), True)
+        self.assertEqual(
+            entry.Post('.@foo bar', entry.User('username'), 666,
+                       "Sun, 31 Oct 2010 03:04:21 +0000").is_rt(), True)
 
 if __name__ == '__main__':
     unittest.main()

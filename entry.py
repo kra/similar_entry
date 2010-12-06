@@ -4,6 +4,7 @@ import util
 import calais_util
 
 import datetime
+import re
 
 # This is in python2.6 itertools, copied from the lib docs.
 # If elements of iterable are unique, these are subsets.
@@ -82,11 +83,35 @@ class Post(object):
             return False
         return True
 
+    def _usernames(self):
+        """
+        Return a set of relevent usernames.
+        """
+        return set(re.findall('@([\w]+)', self.text) + [
+            self.from_user.username])
+
+    def is_rt(self):
+        """
+        Return True if I am an RT.
+        """
+        for pattern in ('^@', '.@'):
+            if self.text.find(pattern) > -1:
+                return True
+        if re.match('rt[\W]*@', self.text, re.IGNORECASE):
+            return True
+        if re.search('[\W]+rt[\W]*@', self.text, re.IGNORECASE):
+            return True
+        return False
+
     def _qualified_post(self, post, min_words, min_diff):
         """
         Return True if post qualfies as a similar post to myself.
         """
-        # XXX Disqualify if this post is an RT (^@, RT, .@)
+        # disqualify if posts both mention a user, or each others' users
+        if self._usernames().intersection(post._usernames()):
+            return False
+        if post.is_rt():
+            return False
         if post.from_user.username != self.from_user.username:
             if self._qualified_post_text(post, min_words):
                 # we want unique words in result or text
@@ -110,6 +135,7 @@ class Post(object):
         Yield eligible seach results with words which match
         entries from my text of max_words or less.
         """
+        # XXX add all URLs, calais doesn't like them all for some reason
         entities = calais_util.get_entities(self.text, calais_key)
         util.log('entities: %s' % entities)
         for combo in all_combinations(
@@ -126,7 +152,7 @@ if __name__ == '__main__':
     import config
     username = 'al3x'#'blaine'
     user = User(username)
-    for post in user.recent_posts():
+    for post in (post for post in user.recent_posts() if not post.is_rt()):
         util.log('post: %s' % post.text)
         #for similar_post in post.find_similar_word_posts(4, 6):
         #    util.log('similar: %s' % similar_post.text)
