@@ -7,6 +7,7 @@ import util
 
 
 class CalaisGetter(object):
+    # XXX generalize this, prob. into a HTTP client
     sleep_secs = 0.0625
     @classmethod
     def get(cls, text, api_key):
@@ -20,7 +21,12 @@ class CalaisGetter(object):
                 cls.sleep_secs = max(cls.sleep_secs / 2, 0.0625)
                 return out
             except ValueError, exc:
-                # Assume this is due to busy server, should parse exc message
+                # XXX httplib.BadStatusLine
+                # Q&D error messaage non-parsing
+                if (exc.message.find(
+                    'does not yet support your submitted content') != -1):
+                    util.log('calais did not like text: %s' % (exc.message))
+                    return []
                 cls.sleep_secs *= 2
                 util.log('calais sleeping: %s (%s)' % (cls.sleep_secs, text))
 
